@@ -2,32 +2,35 @@ import requests
 from bs4 import BeautifulSoup
 import json
 
-# URL de La Bruja de Oro (puedes ajustar si cambia)
 url = "https://www.labrujadeoro.es/es/la-primitiva/resultados"
-
 print("Descargando datos desde:", url)
 
-# Descargar el HTML
-response = requests.get(url, timeout=10)
-response.raise_for_status()
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                  "AppleWebKit/537.36 (KHTML, like Gecko) "
+                  "Chrome/122.0 Safari/537.36"
+}
 
-# Parsear el HTML
+try:
+    response = requests.get(url, headers=headers, timeout=15)
+    response.raise_for_status()
+except Exception as e:
+    print("Error al descargar la página:", e)
+    exit(1)
+
 soup = BeautifulSoup(response.text, "html.parser")
 
-# Buscar los números de la Primitiva (ajusta si la web cambia)
 numeros = []
 for span in soup.select(".number-ball, .number, .bola, .num"):
     try:
         num = int(span.get_text().strip())
         numeros.append(num)
-    except:
-        pass
+    except ValueError:
+        continue
 
-# Quitar duplicados y ordenar
-numeros = sorted(list(set(numeros)))
-
-# Guardar en JSON
+numeros = sorted(set(numeros))
 data = {"frequent_numbers": numeros}
+
 with open("frequent_numbers.json", "w", encoding="utf-8") as f:
     json.dump(data, f, ensure_ascii=False, indent=2)
 
