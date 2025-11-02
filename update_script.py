@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import json
 
-url = "https://www.labrujadeoro.es/es/la-primitiva/resultados"
+url = "https://www.labrujadeoro.es/primitiva"
 print("Descargando datos desde:", url)
 
 headers = {
