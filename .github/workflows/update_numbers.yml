@@ -2,33 +2,40 @@ name: Actualizar números frecuentes
 
 on:
   schedule:
-    - cron: "0 6 * * *" # cada día a las 06:00 UTC
-  workflow_dispatch:     # permite ejecutarlo manualmente
+    - cron: "0 6 * * *"   # Cada día a las 06:00 UTC
+  workflow_dispatch:       # Permite ejecutarlo manualmente
+
+permissions:
+  contents: write           # 👈 Esto da permiso para hacer commits y push
 
 jobs:
   update:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Clonar repo
+      - name: Clonar el repositorio
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false   # 👈 evita conflicto con tokens antiguos
 
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
-      - name: Instalar dependencias
-        run: pip install requests beautifulsoup4
+      - name: Instalar dependencias necesarias
+        run: |
+          pip install requests beautifulsoup4
 
       - name: Ejecutar script de actualización
-        run: python update_script.py
+        run: python update_script.py   # 👈 asegúrate de que el archivo se llama así exactamente
 
       - name: Commit y push si hay cambios
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # 👈 usa el token de GitHub automáticamente
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add frequent_numbers.json
-          git commit -m "Auto: actualizar números frecuentes" || echo "No hay cambios para commitear"
-          git push
-
+          git commit -m "Auto: actualizar números frecuentes" || echo "No hay cambios que subir"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main
