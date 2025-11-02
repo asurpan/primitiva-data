@@ -6,33 +6,33 @@ on:
   workflow_dispatch:       # Permite ejecutarlo manualmente
 
 permissions:
-  contents: write           # 👈 Esto da permiso para hacer commits y push
+  contents: write           # Permiso para commit y push
 
 jobs:
   update:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Clonar el repositorio
+      - name: Clonar repositorio
         uses: actions/checkout@v4
         with:
-          persist-credentials: false   # 👈 evita conflicto con tokens antiguos
+          persist-credentials: false
 
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
-      - name: Instalar dependencias necesarias
+      - name: Instalar dependencias
         run: |
           pip install requests beautifulsoup4
 
       - name: Ejecutar script de actualización
-        run: python update_script.py   # 👈 asegúrate de que el archivo se llama así exactamente
+        run: python update_script.py
 
       - name: Commit y push si hay cambios
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # 👈 usa el token de GitHub automáticamente
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
