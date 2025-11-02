@@ -1,41 +1,39 @@
-name: Actualizar números frecuentes
+# update_script.py
+import requests
+from bs4 import BeautifulSoup
+import json
 
-on:
-  schedule:
-    - cron: "0 6 * * *"   # Cada día a las 06:00 UTC
-  workflow_dispatch:       # Permite ejecutarlo manualmente
+# URL de la página de la Bruja con los números más frecuentes
+URL = "https://www.labrujadeoro.es/primitiva"
 
-permissions:
-  contents: write           # Permiso para commit y push
+print(f"Descargando datos desde: {URL}")
+response = requests.get(URL)
+response.raise_for_status()  # Lanza error si la página no responde correctamente
 
-jobs:
-  update:
-    runs-on: ubuntu-latest
+html = response.text
 
-    steps:
-      - name: Clonar repositorio
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
+# Parsear HTML con BeautifulSoup
+soup = BeautifulSoup(html, 'html.parser')
 
-      - name: Configurar Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
+# Buscar los números frecuentes (la estructura puede cambiar, aquí según la página actual)
+# Normalmente están dentro de un div con clase 'estadisticas' o similar
+# Vamos a buscar los primeros 10 números más frecuentes como ejemplo
+numbers = []
 
-      - name: Instalar dependencias
-        run: |
-          pip install requests beautifulsoup4
+# Este selector depende de la estructura real de la página
+# Aquí buscamos todos los elementos que contengan los números frecuentes
+for li in soup.select("ul.frequent_numbers li"):
+    try:
+        num = int(li.get_text(strip=True))
+        numbers.append(num)
+    except ValueError:
+        continue
 
-      - name: Ejecutar script de actualización
-        run: python update_script.py
+# Guardar en JSON
+data = {"frequent_numbers": numbers}
 
-      - name: Commit y push si hay cambios
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add frequent_numbers.json
-          git commit -m "Auto: actualizar números frecuentes" || echo "No hay cambios que subir"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main
+with open("frequent_numbers.json", "w", encoding="utf-8") as f:
+    json.dump(data, f, ensure_ascii=False, indent=2)
+
+print("Números frecuentes actualizados:", numbers)
+print("Archivo frequent_numbers.json guardado correctamente.")
