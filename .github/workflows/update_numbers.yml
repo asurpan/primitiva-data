@@ -1,15 +1,14 @@
 name: Actualizar números de La Primitiva
 
-# Se ejecuta los días de sorteo (lunes, jueves, sábado) a las 22:00 UTC
 on:
   schedule:
     - cron: "0 22 * * 1"  # Lunes 22:00 UTC
     - cron: "0 22 * * 4"  # Jueves 22:00 UTC
     - cron: "0 22 * * 6"  # Sábado 22:00 UTC
-  workflow_dispatch:      # Permite ejecutarlo manualmente desde GitHub
+  workflow_dispatch:
 
 permissions:
-  contents: write         # Permite hacer commits y push
+  contents: write
 
 jobs:
   update:
@@ -18,27 +17,24 @@ jobs:
     steps:
       - name: Clonar el repositorio
         uses: actions/checkout@v4
-        with:
-          persist-credentials: false  # Evita conflictos con tokens antiguos
 
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: "3.x"
 
       - name: Instalar dependencias necesarias
         run: |
+          python -m pip install --upgrade pip
           pip install requests beautifulsoup4
 
       - name: Ejecutar script de actualización
-        run: python update_script.py   # Asegúrate de que el script se llame exactamente así
+        run: python update_script.py
 
       - name: Commit y push si hay cambios
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # Token automático de GitHub
         run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
           git add frequent_numbers.json
           git commit -m "Auto: actualizar números frecuentes" || echo "No hay cambios que subir"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main
+          git push
